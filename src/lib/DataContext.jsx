@@ -96,6 +96,9 @@ export function DataProvider({ children }) {
     deleteAluno: db.deleteAluno,
     getPresencas: db.getPresencas,
     registrarPresenca: db.registrarPresenca,
+    deletePresenca: db.deletePresenca,
+    deleteManyPresencas: db.deleteManyPresencas,
+    deleteAllPresencas: db.deleteAllPresencas,
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

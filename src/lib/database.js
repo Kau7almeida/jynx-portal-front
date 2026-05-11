@@ -63,3 +63,15 @@ export async function getPresencas(classId) {
 export async function registrarPresenca(fk_student, fk_class) {
   return api.post('/attendances/register', { fk_student, fk_class })
 }
+
+export async function deletePresenca(id) {
+  return api.del(`/attendances/delete/${id}`)
+}
+
+export async function deleteManyPresencas(ids, classId) {
+  return api.del('/attendances/delete-many', { ids, classId })
+}
+
+export async function deleteAllPresencas(classId) {
+  return api.del(`/attendances/delete-all/${classId}`)
+}

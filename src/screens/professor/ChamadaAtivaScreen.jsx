@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { I } from '../../components/icons'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
@@ -43,7 +43,22 @@ function QRBlock({ turma, seconds, fmtTime, compact = false, large = false }) {
   );
 }
 
-function PresencasTable({ turma, presentes, total, pct, animClass }) {
+function PresencasTable({
+  presentes,
+  total,
+  pct,
+  animClass,
+  selectedIds,
+  allSelected,
+  onToggleSelection,
+  onToggleAll,
+  onDelete,
+  onDeleteSelected,
+  onDeleteAll,
+  onClearSelection,
+}) {
+  const selectedCount = selectedIds.length
+
   return (
     <>
       <div className="px-8 pt-7 pb-5">
@@ -60,6 +75,30 @@ function PresencasTable({ turma, presentes, total, pct, animClass }) {
           </div>
         </div>
         <ProgressBar value={presentes.length} max={total} className="mt-5" height={10} />
+        {presentes.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-100 bg-[#FAFAFA] px-4 py-3">
+            <div className="text-[12px] text-ink-500">
+              {selectedCount > 0 ? (
+                <>
+                  <span className="font-semibold text-ink-900">{selectedCount}</span> presença{selectedCount > 1 ? 's' : ''} selecionada{selectedCount > 1 ? 's' : ''}
+                </>
+              ) : (
+                'Selecione uma ou mais presenças para remover em lote.'
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={allSelected ? onClearSelection : onToggleAll}>
+                {allSelected ? 'Limpar seleção' : 'Selecionar todas'}
+              </Button>
+              <Button variant="danger" size="sm" icon={<I.Trash />} onClick={onDeleteSelected} disabled={selectedCount === 0}>
+                Apagar selecionadas
+              </Button>
+              <Button variant="danger" size="sm" icon={<I.Trash />} onClick={onDeleteAll}>
+                Limpar todas
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto scroll-quiet px-8 pb-6 min-h-0">
@@ -71,17 +110,36 @@ function PresencasTable({ turma, presentes, total, pct, animClass }) {
           />
         ) : (
           <div className="rounded-card border border-ink-100 overflow-hidden">
-            <div className="grid grid-cols-[1fr_200px_90px] px-5 h-10 items-center bg-[#FAFAFA] border-b border-ink-100 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+            <div className="grid grid-cols-[40px_1fr_200px_90px_44px] px-5 h-10 items-center bg-[#FAFAFA] border-b border-ink-100 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+              <label className="flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={onToggleAll}
+                  aria-label="Selecionar todas as presenças"
+                  className="h-4 w-4 rounded border-ink-200 text-brand-500 focus:ring-brand-500"
+                />
+              </label>
               <div>Aluno</div>
               <div>Email</div>
               <div className="text-right">Horário</div>
+              <div></div>
             </div>
             <ul>
               {[...presentes].reverse().map((p, i) => (
                 <li
-                  key={`${p.id}-${p.hora}`}
-                  className={`${animClass} grid grid-cols-[1fr_200px_90px] px-5 h-14 items-center border-b border-ink-100 last:border-b-0 ${i % 2 === 1 ? 'bg-[#FAFAFA]/60' : 'bg-white'}`}
+                  key={p.attendanceId}
+                  className={`${animClass} grid grid-cols-[40px_1fr_200px_90px_44px] px-5 h-14 items-center border-b border-ink-100 last:border-b-0 ${selectedIds.includes(p.attendanceId) ? 'bg-brand-50/70' : i % 2 === 1 ? 'bg-[#FAFAFA]/60' : 'bg-white'}`}
                 >
+                  <label className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(p.attendanceId)}
+                      onChange={() => onToggleSelection(p.attendanceId)}
+                      aria-label={`Selecionar presença de ${p.full_name}`}
+                      className="h-4 w-4 rounded border-ink-200 text-brand-500 focus:ring-brand-500"
+                    />
+                  </label>
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="shrink-0 w-7 h-7 rounded-full bg-success/15 text-success flex items-center justify-center [&>svg]:w-3.5 [&>svg]:h-3.5">
                       <I.Check />
@@ -90,6 +148,13 @@ function PresencasTable({ turma, presentes, total, pct, animClass }) {
                   </div>
                   <div className="text-[13px] text-ink-500 truncate">{p.email}</div>
                   <div className="text-[13px] text-ink-500 num text-right">{p.hora}</div>
+                  <button
+                    onClick={() => onDelete(p)}
+                    className="text-ink-500 hover:text-[#B91C1C] [&>svg]:w-4 [&>svg]:h-4 p-1 justify-self-center"
+                    aria-label={`Remover presença de ${p.full_name}`}
+                  >
+                    <I.X />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -101,19 +166,38 @@ function PresencasTable({ turma, presentes, total, pct, animClass }) {
 }
 
 export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fade', onEnd, onPresenter }) {
-  const { turmas, getPresencas } = useData()
+  const { turmas, getPresencas, deletePresenca, deleteManyPresencas, deleteAllPresencas } = useData()
   const turma = turmas.find(t => t.id === turmaId) || turmas[0]
   const totalAlunos = turma?.alunos || 0
-  const [presentes, setPresentes] = useState([]);
-  const [seconds, setSeconds] = useState(15 * 60);
-  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [presentes, setPresentes] = useState([])
+  const [selectedIds, setSelectedIds] = useState([])
+  const [seconds, setSeconds] = useState(15 * 60)
+  const [confirmEnd, setConfirmEnd] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   // Timer
   useEffect(() => {
-    if (seconds <= 0) return;
-    const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(id);
-  }, [seconds]);
+    if (seconds <= 0) return
+    const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000)
+    return () => clearInterval(id)
+  }, [seconds])
+
+  const loadPresencas = useCallback(async (isActive = () => true) => {
+    if (!turmaId) return
+
+    const data = await getPresencas(turmaId)
+    const formatted = data.map((p) => ({
+      attendanceId: p.id,
+      id: p.fk_student,
+      full_name: p.full_name,
+      email: p.email,
+      hora: new Date(p.registered_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    }))
+    if (isActive()) {
+      setPresentes(formatted)
+    }
+  }, [getPresencas, turmaId])
 
   // Polling: buscar presenças reais a cada 3 segundos
   useEffect(() => {
@@ -122,15 +206,8 @@ export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fad
 
     const poll = async () => {
       try {
-        const data = await getPresencas(turmaId)
         if (!active) return
-        const formatted = data.map(p => ({
-          id: p.fk_student,
-          full_name: p.full_name,
-          email: p.email,
-          hora: new Date(p.registered_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        }))
-        setPresentes(formatted)
+        await loadPresencas(() => active)
       } catch (err) {
         console.error('Erro ao buscar presenças:', err)
       }
@@ -138,21 +215,101 @@ export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fad
 
     poll()
     const id = setInterval(poll, 3000)
-    return () => { active = false; clearInterval(id) }
-  }, [turmaId]);
+    return () => {
+      active = false
+      clearInterval(id)
+    }
+  }, [loadPresencas, turmaId])
 
-  const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-  const pct = totalAlunos > 0 ? Math.round((presentes.length / totalAlunos) * 100) : 0;
-  const animClass = { fade: 'animate-fadeUp', slide: 'animate-slideIn', scale: 'animate-scaleIn' }[tableAnim] || 'animate-fadeUp';
+  useEffect(() => {
+    setSelectedIds((current) => current.filter((id) => presentes.some((presenca) => presenca.attendanceId === id)))
+  }, [presentes])
+
+  const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  const pct = totalAlunos > 0 ? Math.round((presentes.length / totalAlunos) * 100) : 0
+  const animClass = { fade: 'animate-fadeUp', slide: 'animate-slideIn', scale: 'animate-scaleIn' }[tableAnim] || 'animate-fadeUp'
+  const allSelected = presentes.length > 0 && selectedIds.length === presentes.length
+
+  const toggleSelection = (attendanceId) => {
+    setSelectedIds((current) => (
+      current.includes(attendanceId)
+        ? current.filter((id) => id !== attendanceId)
+        : [...current, attendanceId]
+    ))
+  }
+
+  const toggleAllSelection = () => {
+    setSelectedIds((current) => (
+      current.length === presentes.length
+        ? []
+        : presentes.map((presenca) => presenca.attendanceId)
+    ))
+  }
+
+  const handleDeleteRequest = (presenca) => {
+    setConfirmDelete({
+      type: 'single',
+      ids: [presenca.attendanceId],
+      label: presenca.full_name,
+    })
+  }
+
+  const handleDeleteSelectedRequest = () => {
+    if (selectedIds.length === 0) return
+    setConfirmDelete({
+      type: 'selected',
+      ids: selectedIds,
+    })
+  }
+
+  const handleDeleteAllRequest = () => {
+    setConfirmDelete({ type: 'all' })
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete || !turmaId) return
+
+    setDeleting(true)
+    try {
+      if (confirmDelete.type === 'single') {
+        await deletePresenca(confirmDelete.ids[0])
+      } else if (confirmDelete.type === 'selected') {
+        await deleteManyPresencas(confirmDelete.ids, turmaId)
+      } else {
+        await deleteAllPresencas(turmaId)
+      }
+
+      await loadPresencas()
+      setSelectedIds([])
+      setConfirmDelete(null)
+    } catch (err) {
+      alert('Erro ao excluir presença: ' + err.message)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   if (!turma) return null
 
-  const qrSection = <QRBlock turma={turma} seconds={seconds} fmtTime={fmtTime} />;
+  const qrSection = <QRBlock turma={turma} seconds={seconds} fmtTime={fmtTime} />
   const tableSection = (
-    <PresencasTable turma={turma} presentes={presentes} total={totalAlunos} pct={pct} animClass={animClass} />
-  );
+    <PresencasTable
+      presentes={presentes}
+      total={totalAlunos}
+      pct={pct}
+      animClass={animClass}
+      selectedIds={selectedIds}
+      allSelected={allSelected}
+      onToggleSelection={toggleSelection}
+      onToggleAll={toggleAllSelection}
+      onDelete={handleDeleteRequest}
+      onDeleteSelected={handleDeleteSelectedRequest}
+      onDeleteAll={handleDeleteAllRequest}
+      onClearSelection={() => setSelectedIds([])}
+    />
+  )
 
-  let layoutEl;
+  let layoutEl
   if (layout === 'split') {
     layoutEl = (
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0">
@@ -161,7 +318,7 @@ export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fad
         </div>
         <div className="bg-white flex flex-col min-h-0">{tableSection}</div>
       </div>
-    );
+    )
   } else if (layout === 'stacked') {
     layoutEl = (
       <div className="flex-1 grid grid-rows-[auto_1fr] min-h-0">
@@ -191,7 +348,7 @@ export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fad
         </div>
         <div className="bg-white flex flex-col min-h-0">{tableSection}</div>
       </div>
-    );
+    )
   } else {
     layoutEl = (
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] min-h-0">
@@ -200,7 +357,7 @@ export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fad
         </div>
         <div className="bg-white border-l border-ink-100 flex flex-col min-h-0">{tableSection}</div>
       </div>
-    );
+    )
   }
 
   return (
@@ -243,6 +400,42 @@ export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fad
       >
         Após encerrar, novas presenças não serão aceitas. <span className="font-semibold text-ink-900">{presentes.length} de {totalAlunos}</span> alunos confirmaram presença.
       </Modal>
+
+      <Modal
+        open={!!confirmDelete}
+        onClose={() => !deleting && setConfirmDelete(null)}
+        title={
+          confirmDelete?.type === 'single'
+            ? 'Excluir presença?'
+            : confirmDelete?.type === 'selected'
+              ? 'Excluir presenças selecionadas?'
+              : 'Limpar todas as presenças?'
+        }
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmDelete(null)} disabled={deleting}>Cancelar</Button>
+            <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </>
+        }
+      >
+        {confirmDelete?.type === 'single' && (
+          <>
+            Tem certeza que deseja excluir a presença de <span className="font-semibold text-ink-900">{confirmDelete.label}</span>?
+          </>
+        )}
+        {confirmDelete?.type === 'selected' && (
+          <>
+            Tem certeza que deseja excluir <span className="font-semibold text-ink-900">{confirmDelete.ids.length}</span> presenças selecionadas?
+          </>
+        )}
+        {confirmDelete?.type === 'all' && (
+          <>
+            Esta ação removerá <span className="font-semibold text-ink-900">todas as presenças</span> registradas para <span className="font-semibold text-ink-900">{turma.name}</span>.
+          </>
+        )}
+      </Modal>
     </div>
-  );
+  )
 }
