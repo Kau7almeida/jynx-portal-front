@@ -8,11 +8,12 @@ import { SearchInput } from '../../components/ui/Input'
 import { useData } from '../../lib/DataContext'
 
 export function AlunoSelectScreen({ turmaId, onConfirm, onCancel }) {
-  const { turmas, getAlunosDaTurma } = useData()
+  const { turmas, getAlunosDaTurma, registrarPresenca } = useData()
   const turma = turmas.find(t => t.id === turmaId) || turmas[0]
   const alunosDaTurma = turmaId ? getAlunosDaTurma(turmaId) : []
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const filtered = alunosDaTurma.filter(a =>
     a.full_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,11 +104,24 @@ export function AlunoSelectScreen({ turmaId, onConfirm, onCancel }) {
           variant="primary"
           size="lg"
           fullWidth
-          disabled={!selectedId}
-          onClick={() => selectedId && onConfirm(alunosDaTurma.find(a => a.id === selectedId))}
+          disabled={!selectedId || submitting}
+          onClick={async () => {
+            if (!selectedId) return
+            const aluno = alunosDaTurma.find(a => a.id === selectedId)
+            if (!aluno) return
+            setSubmitting(true)
+            try {
+              await registrarPresenca(aluno.id, turmaId)
+              onConfirm(aluno)
+            } catch (err) {
+              alert('Erro ao registrar presença: ' + err.message)
+            } finally {
+              setSubmitting(false)
+            }
+          }}
           icon={<I.Check />}
         >
-          Confirmar Presença
+          {submitting ? 'Registrando...' : 'Confirmar Presença'}
         </Button>
         <p className="mt-3 text-center text-[11px] text-ink-500">
           Sua presença será registrada com seu nome e horário atual.

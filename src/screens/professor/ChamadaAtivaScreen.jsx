@@ -101,36 +101,45 @@ function PresencasTable({ turma, presentes, total, pct, animClass }) {
 }
 
 export function ChamadaAtivaScreen({ turmaId, layout = 'split', tableAnim = 'fade', onEnd, onPresenter }) {
-  const { turmas, getAlunosDaTurma } = useData()
+  const { turmas, getPresencas } = useData()
   const turma = turmas.find(t => t.id === turmaId) || turmas[0]
   const totalAlunos = turma?.alunos || 0
-  const alunosDaTurma = turmaId ? getAlunosDaTurma(turmaId) : []
   const [presentes, setPresentes] = useState([]);
   const [seconds, setSeconds] = useState(15 * 60);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
+  // Timer
   useEffect(() => {
     if (seconds <= 0) return;
     const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(id);
   }, [seconds]);
 
-  // Simular presenças com alunos reais
+  // Polling: buscar presenças reais a cada 3 segundos
   useEffect(() => {
-    if (alunosDaTurma.length === 0) return
-    if (presentes.length >= alunosDaTurma.length) return;
-    const next = alunosDaTurma[presentes.length];
-    if (!next) return;
-    const delay = presentes.length === 0 ? 1200 : 900 + Math.random() * 1700;
-    const id = setTimeout(() => {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      const ss = String(now.getSeconds()).padStart(2, '0');
-      setPresentes((p) => [...p, { ...next, hora: `${hh}:${mm}:${ss}` }]);
-    }, delay);
-    return () => clearTimeout(id);
-  }, [presentes, alunosDaTurma]);
+    if (!turmaId) return
+    let active = true
+
+    const poll = async () => {
+      try {
+        const data = await getPresencas(turmaId)
+        if (!active) return
+        const formatted = data.map(p => ({
+          id: p.fk_student,
+          full_name: p.full_name,
+          email: p.email,
+          hora: new Date(p.registered_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        }))
+        setPresentes(formatted)
+      } catch (err) {
+        console.error('Erro ao buscar presenças:', err)
+      }
+    }
+
+    poll()
+    const id = setInterval(poll, 3000)
+    return () => { active = false; clearInterval(id) }
+  }, [turmaId]);
 
   const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   const pct = totalAlunos > 0 ? Math.round((presentes.length / totalAlunos) * 100) : 0;

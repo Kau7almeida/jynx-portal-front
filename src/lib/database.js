@@ -53,3 +53,13 @@ export async function updateAluno(id, { full_name, cpf, email, phone, fk_class }
 export async function deleteAluno(id) {
   return api.del(`/students/delete/${id}`)
 }
+
+// ─── Presenças ───────────────────────────────────────────
+
+export async function getPresencas(classId) {
+  return api.get(`/attendances/get/${classId}`)
+}
+
+export async function registrarPresenca(fk_student, fk_class) {
+  return api.post('/attendances/register', { fk_student, fk_class })
+}
