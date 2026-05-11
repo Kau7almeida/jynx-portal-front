@@ -18,7 +18,8 @@ import { DataProvider } from './lib/DataContext'
 function AppContent() {
   // Detectar se o aluno acessou via QR Code (?chamada=turmaId)
   const params = new URLSearchParams(window.location.search)
-  const chamadaTurmaId = params.get('chamada')
+  const rawChamada = params.get('chamada')
+  const chamadaTurmaId = rawChamada ? Number(rawChamada) : null
 
   const [route, setRoute] = useState(chamadaTurmaId ? 'aluno-chamada' : 'dashboard');
   const [activeTurma, setActiveTurma] = useState(null);
