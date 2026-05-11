@@ -1,0 +1,56 @@
+import { I } from '../components/icons'
+
+export const TURMAS = [
+  { id: 't1', nome: 'Engenharia de Software',  curso: 'Ciência da Computação', semestre: '5º semestre', alunos: 32, codigo: 'CC-505', icon: <I.Code />,   horario: 'Seg/Qua · 19h00–21h00' },
+  { id: 't2', nome: 'Banco de Dados II',        curso: 'Sistemas de Informação', semestre: '4º semestre', alunos: 28, codigo: 'SI-402', icon: <I.Book />,   horario: 'Ter/Qui · 19h00–21h00' },
+  { id: 't3', nome: 'Algoritmos e Estruturas',  curso: 'Ciência da Computação', semestre: '2º semestre', alunos: 41, codigo: 'CC-201', icon: <I.Brain />,  horario: 'Seg/Sex · 14h00–16h00' },
+  { id: 't4', nome: 'Cálculo III',              curso: 'Engenharia',             semestre: '3º semestre', alunos: 36, codigo: 'EN-301', icon: <I.Beaker />, horario: 'Ter/Qui · 14h00–16h00' },
+  { id: 't5', nome: 'Inglês Técnico',           curso: 'Multi-curso',            semestre: '1º semestre', alunos: 24, codigo: 'EX-101', icon: <I.Globe />,  horario: 'Sex · 18h00–20h00' },
+  { id: 't6', nome: 'Metodologia Científica',   curso: 'Multi-curso',            semestre: '7º semestre', alunos: 19, codigo: 'EX-701', icon: <I.Mortar />, horario: 'Qua · 19h00–21h00' },
+];
+
+export const ALUNOS_T1 = [
+  { id: 1,  nome: 'Ana Beatriz Carvalho',    matricula: '2023.1.0142' },
+  { id: 2,  nome: 'Bruno Almeida Santos',    matricula: '2023.1.0098' },
+  { id: 3,  nome: 'Carolina Mendes Lima',    matricula: '2023.1.0156' },
+  { id: 4,  nome: 'Daniel Ribeiro Costa',    matricula: '2023.1.0211' },
+  { id: 5,  nome: 'Eduarda Pereira Rocha',   matricula: '2023.1.0078' },
+  { id: 6,  nome: 'Felipe Andrade Silva',    matricula: '2023.1.0189' },
+  { id: 7,  nome: 'Gabriela Oliveira Souza', matricula: '2023.1.0123' },
+  { id: 8,  nome: 'Henrique Barbosa Dias',   matricula: '2023.1.0167' },
+  { id: 9,  nome: 'Isabela Fernandes Reis',  matricula: '2023.1.0145' },
+  { id: 10, nome: 'João Pedro Martins',      matricula: '2023.1.0203' },
+  { id: 11, nome: 'Kamila Santos Vieira',    matricula: '2023.1.0091' },
+  { id: 12, nome: 'Lucas Ferreira Gomes',    matricula: '2023.1.0177' },
+  { id: 13, nome: 'Mariana Castro Pinheiro', matricula: '2023.1.0134' },
+  { id: 14, nome: 'Nathan Carvalho Lopes',   matricula: '2023.1.0198' },
+  { id: 15, nome: 'Olívia Ramos Cardoso',    matricula: '2023.1.0112' },
+  { id: 16, nome: 'Pedro Henrique Moura',    matricula: '2023.1.0156' },
+  { id: 17, nome: 'Quésia Nascimento Cruz',  matricula: '2023.1.0089' },
+  { id: 18, nome: 'Rafael Teixeira Borges',  matricula: '2023.1.0223' },
+  { id: 19, nome: 'Sofia Cardoso Mendonça',  matricula: '2023.1.0167' },
+  { id: 20, nome: 'Thiago Nunes Araújo',     matricula: '2023.1.0101' },
+  { id: 21, nome: 'Ursula Vasconcelos Lima', matricula: '2023.1.0145' },
+  { id: 22, nome: 'Vinícius Alves Pereira',  matricula: '2023.1.0188' },
+  { id: 23, nome: 'Wagner Souza Mendes',     matricula: '2023.1.0099' },
+  { id: 24, nome: 'Yasmin Lopes Ribeiro',    matricula: '2023.1.0212' },
+  { id: 25, nome: 'Zion Cavalcanti Dias',    matricula: '2023.1.0134' },
+  { id: 26, nome: 'Amanda Rezende Souza',    matricula: '2023.1.0156' },
+  { id: 27, nome: 'Bernardo Lima Cruz',      matricula: '2023.1.0078' },
+  { id: 28, nome: 'Clara Antunes Vieira',    matricula: '2023.1.0167' },
+  { id: 29, nome: 'Diogo Pacheco Rocha',     matricula: '2023.1.0189' },
+  { id: 30, nome: 'Elisa Bittencourt Mota',  matricula: '2023.1.0145' },
+  { id: 31, nome: 'Fernando Coelho Tavares', matricula: '2023.1.0211' },
+  { id: 32, nome: 'Giovanna Moreira Pinto',  matricula: '2023.1.0098' },
+];
+
+export const HISTORICO = [
+  { id: 'h1', data: '07/05/2026', turma: 'Engenharia de Software', total: 32, presentes: 29, hora: '19h12' },
+  { id: 'h2', data: '06/05/2026', turma: 'Banco de Dados II',       total: 28, presentes: 26, hora: '19h08' },
+  { id: 'h3', data: '05/05/2026', turma: 'Algoritmos e Estruturas', total: 41, presentes: 35, hora: '14h05' },
+  { id: 'h4', data: '05/05/2026', turma: 'Engenharia de Software',  total: 32, presentes: 31, hora: '19h10' },
+  { id: 'h5', data: '04/05/2026', turma: 'Cálculo III',             total: 36, presentes: 22, hora: '14h15' },
+  { id: 'h6', data: '03/05/2026', turma: 'Inglês Técnico',          total: 24, presentes: 21, hora: '18h05' },
+  { id: 'h7', data: '02/05/2026', turma: 'Banco de Dados II',       total: 28, presentes: 27, hora: '19h02' },
+  { id: 'h8', data: '01/05/2026', turma: 'Metodologia Científica',  total: 19, presentes: 12, hora: '19h20' },
+];
